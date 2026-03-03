@@ -1,0 +1,5 @@
+{
+  "name": "1.01. Hot Wheels Track Experience",
+  "description": "A cinematic 3D racing track homepage inspired by Hot Wheels, featuring Three.js and React Three Fiber, now with a fully functional Speed Shop page.",
+  "requestFramePermissions": []
+}
