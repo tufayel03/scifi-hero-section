@@ -247,7 +247,7 @@ export function HUDHero({ onShopClick }: { onShopClick: () => void }) {
                 {/* LEFT NAV */}
                 <div className="w-[200px] h-[350px] bg-[#FF1A00]/10 border-l-4 border-[#FF1A00] flex flex-col justify-center gap-3 p-4 z-30 transition-all hover:bg-[#FF1A00]/20 group backdrop-blur-[2px] pointer-events-auto" style={{ clipPath: 'polygon(0 0, 100% 20%, 100% 80%, 0 100%)' }}>
                   <div className="absolute inset-0 bg-[#FF1A00]/10 opacity-0 group-hover:opacity-100 blur-xl transition-opacity"></div>
-                  {['G-FORCE <', 'NAVIGATION', 'SYSTEM', 'WARNINGS'].map((t, i) => (
+                  {['G-FORCE <', 'SYSTEM', 'WARNINGS'].map((t, i) => (
                     <button key={t} className={`group/btn w-full py-3 px-4 text-right font-bold text-sm tracking-widest relative overflow-hidden transition-all ${i === 0 ? 'bg-gradient-to-r from-[#FF1A00] to-[#FF4A1A] text-white shadow-[0_0_15px_#FF1A00]' : 'bg-[#FF1A00]/10 text-[#FFB800] border-t border-b border-[#FFB800]/20 hover:bg-[#FF1A00]/30 hover:border-[#FFB800]/60 hover:text-white'}`}>
                       {t}
                       {i === 0 && <span className="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_5px_white]"></span>}
@@ -353,9 +353,7 @@ export function HUDHero({ onShopClick }: { onShopClick: () => void }) {
 
       </div>
 
-      <div className="absolute bottom-6 left-8 text-[#FF1A00]/60 text-xs tracking-widest font-rajdhani z-50">
-        SYS.VELOCITY_OS // OVERRIDE_ACTIVE
-      </div>
+
       <div className="absolute bottom-6 right-8 text-[#FF1A00]/60 text-xs tracking-widest font-orbitron z-50 opacity-50 border-b-2 border-[#FF1A00] pb-1">
         J M
       </div>
