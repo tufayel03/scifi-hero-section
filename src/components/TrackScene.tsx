@@ -85,39 +85,39 @@ function CameraRig() {
   useFrame((state) => {
     // scroll.offset is between 0 and 1, but can be negative on macOS bounce
     const t = Math.max(0, Math.min(scroll.offset, 1));
-    
+
     const position = curve.getPointAt(t);
-    
+
     // Get the Frenet frames to perfectly align with the track surface
     const frameIndex = Math.min(Math.floor(t * 800), 800);
     // In Three.js ExtrudeGeometry, the shape's Y axis (up) is mapped to the binormal
     const binormal = frames.binormals[frameIndex];
-    
-    // Track surface is at y=0.15. Place camera at y=0.4 (0.25 units above surface)
-    // This gives a low-to-the-ground Hot Wheels POV
-    const cameraOffset = binormal.clone().multiplyScalar(0.4);
+
+    // Track surface is at y=0.15. Place camera at y=1.5
+    // This gives a higher vantage point, pushing the track lower on the screen
+    const cameraOffset = binormal.clone().multiplyScalar(1.5);
     const camPos = position.clone().add(cameraOffset);
-    
+
     // Look ahead along the track
     const lookAtT = Math.min(t + 0.02, 1);
     const lookAtPosition = curve.getPointAt(lookAtT);
     const lookAtFrameIndex = Math.min(Math.floor(lookAtT * 800), 800);
     const lookAtBinormal = frames.binormals[lookAtFrameIndex];
-    
-    const lookAtOffset = lookAtBinormal.clone().multiplyScalar(0.4);
+
+    const lookAtOffset = lookAtBinormal.clone().multiplyScalar(1.5);
     let targetLookAt = lookAtPosition.clone().add(lookAtOffset);
     let targetFov = 75;
-    
+
     if (t > 0.95) {
       const endPos = curve.getPointAt(1.0);
       const endFrameIndex = Math.min(Math.floor(1.0 * 800), 800);
       const endBinormal = frames.binormals[endFrameIndex];
       const endCenter = endPos.clone().add(endBinormal.clone().multiplyScalar(2));
-      
+
       let influence = (t - 0.95) / 0.05; // 0 to 1
       influence = Math.max(0, Math.min(1, influence));
       influence = influence * influence * (3 - 2 * influence);
-      
+
       targetLookAt.lerp(endCenter, influence);
       targetFov = 75 - (influence * 15); // Slight zoom
     } else {
@@ -131,30 +131,30 @@ function CameraRig() {
           } else {
             influence = (dist + 0.002) / 0.007;
           }
-          
+
           // Smoothstep for natural camera movement
           influence = Math.max(0, Math.min(1, influence));
           influence = influence * influence * (3 - 2 * influence);
-          
+
           const sbPos = curve.getPointAt(st);
           const sbFrameIndex = Math.min(Math.floor(st * 800), 800);
           const sbBinormal = frames.binormals[sbFrameIndex];
-          
+
           // Look at the center of the signboard (y=3)
           const sbCenter = sbPos.clone().add(sbBinormal.clone().multiplyScalar(3));
-          
+
           targetLookAt.lerp(sbCenter, influence * 0.95);
           targetFov = 75 - (influence * 35); // Zoom in slightly less to see both boards
           break;
         }
       }
     }
-    
+
     state.camera.position.copy(camPos);
     // Lock the camera's up vector to the track's up (binormal)
     state.camera.up.copy(binormal);
     state.camera.lookAt(targetLookAt);
-    
+
     const cam = state.camera as THREE.PerspectiveCamera;
     cam.fov = targetFov;
     cam.updateProjectionMatrix();
@@ -166,7 +166,7 @@ function CameraRig() {
 function SpeedLines() {
   const linesRef = useRef<THREE.Group>(null);
   const { camera } = useThree();
-  
+
   const lines = useMemo(() => {
     return Array.from({ length: 200 }).map(() => ({
       x: (Math.random() - 0.5) * 60,
@@ -176,15 +176,15 @@ function SpeedLines() {
       length: Math.random() * 10 + 5
     }));
   }, []);
-  
+
   useFrame((state) => {
     if (linesRef.current) {
       // Keep the group centered on the camera
       linesRef.current.position.copy(camera.position);
-      
+
       // Match camera rotation so lines always come from "forward"
       linesRef.current.quaternion.copy(camera.quaternion);
-      
+
       // Animate individual lines
       linesRef.current.children.forEach((child, i) => {
         if (lines[i]) {
@@ -212,7 +212,7 @@ function SpeedLines() {
 function MovingStars() {
   const starsRef = useRef<THREE.Group>(null);
   const { camera } = useThree();
-  
+
   useFrame(() => {
     if (starsRef.current) {
       starsRef.current.position.copy(camera.position);
@@ -238,7 +238,7 @@ function SignBoard({ t = 0.1, imageUrl = 'https://images.unsplash.com/photo-1583
     const frames = curve.computeFrenetFrames(800, false);
     const frameIndex = Math.min(Math.floor(t * 800), 800);
     const binormal = frames.binormals[frameIndex];
-    
+
     const matrix = new THREE.Matrix4();
     matrix.lookAt(pos, pos.clone().add(tangent), binormal);
     const quat = new THREE.Quaternion().setFromRotationMatrix(matrix);
@@ -258,7 +258,7 @@ function SignBoard({ t = 0.1, imageUrl = 'https://images.unsplash.com/photo-1583
       <mesh position={[3.8, 2, 0]} material={metalMaterial}>
         <cylinderGeometry args={[0.15, 0.15, 4, 16]} />
       </mesh>
-      
+
       {/* Pillar Bases */}
       <mesh position={[-3.8, 0.1, 0]} material={metalMaterial}>
         <boxGeometry args={[0.5, 0.2, 0.5]} />
@@ -338,7 +338,7 @@ function FinishLine({ t = 0.98 }) {
     const frames = curve.computeFrenetFrames(800, false);
     const frameIndex = Math.min(Math.floor(t * 800), 800);
     const binormal = frames.binormals[frameIndex];
-    
+
     const matrix = new THREE.Matrix4();
     matrix.lookAt(pos, pos.clone().add(tangent), binormal);
     const quat = new THREE.Quaternion().setFromRotationMatrix(matrix);
@@ -346,7 +346,7 @@ function FinishLine({ t = 0.98 }) {
   }, [t]);
 
   const metalMaterial = useMemo(() => new THREE.MeshStandardMaterial({ color: '#888888', metalness: 0.8, roughness: 0.2 }), []);
-  
+
   const checkerTexture = useMemo(() => {
     const canvas = document.createElement('canvas');
     canvas.width = 1024;
@@ -385,7 +385,7 @@ function FinishLine({ t = 0.98 }) {
       <mesh position={[4.5, 3, 0]} material={metalMaterial}>
         <cylinderGeometry args={[0.2, 0.2, 6, 16]} />
       </mesh>
-      
+
       {/* Banner */}
       <mesh position={[0, 4.5, 0]} material={bannerMaterial}>
         <boxGeometry args={[9, 1.5, 0.1]} />
@@ -405,10 +405,10 @@ function HotWheelsEnvironment() {
     <>
       <Track />
       {Array.from({ length: 19 }).map((_, i) => (
-        <SignBoard 
-          key={i} 
-          t={0.068 + (i * 0.048)} 
-          imageUrl={`https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=400&q=80&sig=${i + 1}`} 
+        <SignBoard
+          key={i}
+          t={0.068 + (i * 0.048)}
+          imageUrl={`https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=400&q=80&sig=${i + 1}`}
         />
       ))}
       <FinishLine t={0.98} />
@@ -418,7 +418,7 @@ function HotWheelsEnvironment() {
 
 export function TrackScene() {
   const navigate = useNavigate();
-  
+
   return (
     <div className="w-full h-screen bg-[#0D0D0F] relative">
       {/* Advanced Speedometer UI */}
@@ -426,16 +426,16 @@ export function TrackScene() {
         <div className="relative w-56 h-56">
           {/* Outer Glow */}
           <div id="speed-glow" className="absolute inset-0 rounded-full bg-[#FF2A00] opacity-0 blur-2xl transition-opacity duration-75"></div>
-          
+
           {/* Main Bezel */}
           <div className="absolute inset-0 rounded-full border-4 border-[#111] bg-gradient-to-br from-[#222] to-[#050505] shadow-[inset_0_0_30px_rgba(0,0,0,1),0_10px_20px_rgba(0,0,0,0.8)]"></div>
-          
+
           {/* Inner Ring */}
           <div className="absolute inset-3 rounded-full border border-[#333] bg-[#0a0a0c] shadow-[inset_0_0_20px_rgba(0,0,0,0.8)]"></div>
-          
+
           {/* Carbon Fiber Pattern (CSS) */}
           <div className="absolute inset-3 rounded-full opacity-20" style={{ backgroundImage: 'radial-gradient(#333 1px, transparent 1px)', backgroundSize: '4px 4px' }}></div>
-          
+
           {/* Ticks and Numbers (SVG) */}
           <svg className="absolute inset-0 w-full h-full" viewBox="0 0 224 224">
             <defs>
@@ -445,7 +445,7 @@ export function TrackScene() {
                 <stop offset="100%" stopColor="#FF2A00" />
               </linearGradient>
             </defs>
-            
+
             {/* Colored Arc */}
             <path
               d="M 42.7 181.3 A 98 98 0 1 1 181.3 181.3"
@@ -471,7 +471,7 @@ export function TrackScene() {
               const x2 = cx + radius * Math.cos(angleRad);
               const y2 = cy + radius * Math.sin(angleRad);
               const color = i > 32 ? '#FF2A00' : (i > 24 ? '#FFD500' : '#FFFFFF');
-              
+
               return (
                 <g key={i}>
                   <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth={width} strokeLinecap="round" />
@@ -497,7 +497,7 @@ export function TrackScene() {
 
           {/* RPM / Gear Display */}
           <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
-             <span className="font-display text-[#FF2A00] text-sm tracking-widest opacity-80">RACE MODE</span>
+            <span className="font-display text-[#FF2A00] text-sm tracking-widest opacity-80">RACE MODE</span>
           </div>
 
           {/* Digital Display */}
@@ -512,7 +512,7 @@ export function TrackScene() {
           <div id="speed-needle" className="absolute top-1/2 left-1/2 w-1.5 h-24 -ml-[3px] -mt-24 origin-bottom transition-transform duration-75" style={{ transform: 'rotate(-135deg)' }}>
             <div className="w-full h-full bg-gradient-to-t from-transparent via-[#FF2A00] to-[#FFD500] rounded-t-full shadow-[0_0_15px_rgba(255,42,0,1)]"></div>
           </div>
-          
+
           {/* Center Cap */}
           <div className="absolute top-1/2 left-1/2 w-10 h-10 -ml-5 -mt-5 rounded-full bg-gradient-to-br from-[#333] to-[#0a0a0c] border-2 border-[#111] shadow-[0_4px_10px_rgba(0,0,0,0.8)] flex items-center justify-center z-10">
             <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#111] to-[#000] border border-[#222] flex items-center justify-center">
@@ -525,7 +525,7 @@ export function TrackScene() {
       <Canvas camera={{ position: [0, 2, 5], fov: 75 }}>
         <color attach="background" args={['#0D0D0F']} />
         <fog attach="fog" args={['#0D0D0F', 10, 150]} />
-        
+
         <ambientLight intensity={0.5} />
         <directionalLight position={[10, 20, 10]} intensity={1.5} color="#FFD500" />
         <pointLight position={[0, 5, -50]} intensity={2} color="#FF2A00" distance={50} />
@@ -533,14 +533,14 @@ export function TrackScene() {
         <pointLight position={[-50, 25, -250]} intensity={2} color="#FFD500" distance={50} />
 
         <MovingStars />
-        
+
         <ScrollControls pages={16} damping={0.25}>
           <HotWheelsEnvironment />
           <CameraRig />
           <SpeedLines />
           <OverlayUI onShopClick={() => navigate('/shop')} />
         </ScrollControls>
-        
+
         <Environment preset="city" />
       </Canvas>
     </div>
